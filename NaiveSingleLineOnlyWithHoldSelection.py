@@ -8,6 +8,11 @@ TODO:
         - Want to be able to select a list of what hold types we want 
         - Need a method of choosing a hold in an area / finding the list of holds within an area
             - if multiple of type looking for, randomly choose one of them - done with random selection
+
+    NEW TODO:
+    - Amend algorithm to cater to going upwards more, amend the random selection to choose only ones where the y is greater or equal to the potential point
+    - Fix not being able to generate if against wall - need to go back and select a different potential point
+    - Fix next point y being smaller than the previous point y
     - Create verification methods
 '''
 

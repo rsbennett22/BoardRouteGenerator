@@ -33,13 +33,23 @@ class Wall:
         self.gridPoints = gridPoints
 
     def selectHoldFromPotentialPoint(self, prevHold, point, radius):
+        print("POINT")
+        print(point)
         indicesInRadius = self.tree.query_ball_point(point, r=radius)
         # Randomly choose hold in this
         pointsInRadius = self.gridPoints[indicesInRadius]
+        pointsInRadius = pointsInRadius.tolist()
         print("POINTS IN RADIUS")
         print(pointsInRadius)
         # Randomly select a hold
-        nextHold = pointsInRadius[randint(0, len(pointsInRadius)-1)]
+        randHoldNum = randint(0, len(pointsInRadius)-1)
+        nextHold = pointsInRadius[randHoldNum]
+        if point[1] < 9.5:
+            while nextHold[1] < point[1]:
+                pointsInRadius.remove(pointsInRadius[randHoldNum])
+                randHoldNum = randint(0, len(pointsInRadius)-1)
+                nextHold = pointsInRadius[randHoldNum]
+
         # Return the hold from the wall
         for hold in self.holds:
             if hold.x == nextHold[0] and hold.y == nextHold[1] and hold != prevHold:
