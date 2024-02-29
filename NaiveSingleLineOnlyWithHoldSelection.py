@@ -3,31 +3,26 @@
 '''
 TODO:
     - Create data type to represent holds - done, implemented into what I already had
-    - Randomly fill a grid with random holds / create a preset "wall" <- this will need some extra work
+    - Randomly fill a grid with random holds / create a preset "wall" <- this will need some extra work - done
     - Generate a route that selects holds of a specific type
         - Want to be able to select a list of what hold types we want 
+        - Need a method of choosing a hold in an area / finding the list of holds within an area
+            - if multiple of type looking for, randomly choose one of them - done with random selection
     - Create verification methods
 '''
 
-
-from random import uniform, randint
-import math
 from matplotlib import pyplot as plt
-from Components.Hold import Hold
-from Components.HoldType import HoldType
+import math
+from random import randint
+from Components.Hold import Hold, HoldType
+from Components.Wall import Wall
 
-def plotHolds(holds):
-    xHolds = []
-    yHolds = []
-
+def plotHolds(holds, wall):
+    wall.plotHolds()
     for hold in holds:
-        xHolds.append(hold.x)
-        yHolds.append(hold.y)
-
-    # Plots the points as connected lines
-    plt.plot(xHolds, yHolds)
-    # Plots the point as a red dot
-    plt.plot(xHolds, yHolds, 'ro')
+        plt.plot(hold.x, hold.y)
+        # Plots the point as a red dot
+        plt.plot(hold.x, hold.y, "ro")
 
 def generateRoute():
     holds = []
@@ -44,19 +39,44 @@ def generateRoute():
     
     plotHolds(holds)
 
-    plt.xticks(range(0,10))
+    plt.xticks(range(0,11))
     plt.yticks(range(0,11))
     plt.show()
 
 
+def createWall():
+    wall = Wall([], [], [])
+    wall.randomlyGenerateWall(10, 10)
+    return wall
+
+
+def generateRoute2():
+    holds = []
+    # Create a wall
+    wall = createWall()
+    # Create tree structure of wall
+    gridWidth = 10
+    gridHeight = 10
+    wall.generateTreeRepresentation(gridWidth, gridHeight)
+    # Generate a starting hold
+    hold = Hold.generateStartHold(wall)
+
+    while hold.y <= gridHeight:
+        hold.print()
+        holds.append(hold)
+        potentialNextHoldLocation = Hold.generatePotentialHoldLocation(hold, 1, 10, 170, 10)
+        hold = wall.selectHoldFromPotentialPoint(hold, potentialNextHoldLocation, 1.5)
+        if hold == None:
+            break
+
+    plotHolds(holds, wall)
+    plt.xticks(range(0,11))
+    plt.yticks(range(0,11))
+    plt.show()
+
 # Run Program
-generateRoute()
-
-
-
-### Basic test methods
-
-
+#generateRoute()
+generateRoute2()
 
 '''
 PAGES USED FOR HELP

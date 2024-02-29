@@ -17,47 +17,39 @@ class Hold:
         self.holdType = holdType
 
     def print(self):
-        print(HoldType.convertToString(self.holdType))
+        print(HoldType.convertHoldTypeToString(self.holdType))
         print(self.x)
         print(self.y)
 
-    def generateStartHold(gridWidth, gridHeight, holdType):
-    # Limit x and y choices to be in a range
-
-        limitX = gridWidth / 10
-        limitY = gridHeight / 5
-
-        randomX = uniform(limitX, gridWidth - limitX)
-        randomY = uniform(0, limitY)
-
-        return Hold(randomX, randomY, holdType)
+    def generateStartHold(wall):
+        # Randomly select a hold from first 4 rows on wall
+        return wall.holds[randint(0, 19*4)]
     
-    def generateNextHold(self, holdType, distance, startAngle, endAngle, numPotentialPositions):
+    def generatePotentialHoldLocation(prevHold, distance, startAngle, endAngle, numPotentialPositions):
     # Generate arc of points at a set distance from the hold co ordinates
 
-        holds = []
+        points = []
         angle = startAngle
         step = (endAngle - startAngle) / numPotentialPositions
 
         while angle <= endAngle:
             # Generate point on arc for the angle
-            x = self.x + distance * math.cos(math.radians(angle))
-            y = self.y + distance * math.sin(math.radians(angle))
+            x = prevHold.x + distance * math.cos(math.radians(angle))
+            y = prevHold.y + distance * math.sin(math.radians(angle))
             
-            newHold = Hold(x, y, holdType)
-            holds.append(newHold)
+            points.append([x, y])
             angle += step
         
         # Randomly select a point in the list
-        randomHold = randint(0, len(holds)-1)
+        randomPoint = randint(0, len(points)-1)
         
-        return holds[randomHold]
+        return points[randomPoint]
 
 class HoldType:
     JUG, CRIMP, SLOPER, PINCH, POCKET = range(5)
 
-    def convertToString(holdType):
-        match holdType:
+    def convertHoldTypeToString(num):
+        match num:
             case 0:
                 return "JUG"
             case 1:
@@ -68,9 +60,33 @@ class HoldType:
                 return "PINCH"
             case 4:
                 return "POCKET"
-            case 5:
-                return "NONE"
+            
+    def convertToColourCode(num):
+        match num:
+            case HoldType.JUG:
+                return 'g'
+            case HoldType.CRIMP:
+                return 'b'
+            case HoldType.SLOPER:
+                return 'y'
+            case HoldType.PINCH:
+                return 'm'
+            case HoldType.POCKET:
+                return 'k'
 
+    def generateRandomHoldType():
+        randomNum = randint(0, 4)
+        match randomNum:
+            case 0:
+                return HoldType.JUG
+            case 1:
+                return HoldType.CRIMP
+            case 2:
+                return HoldType.SLOPER
+            case 3:
+                return HoldType.PINCH
+            case 4:
+                return HoldType.POCKET
             
 '''
 TESTING
