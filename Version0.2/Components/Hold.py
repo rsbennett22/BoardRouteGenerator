@@ -40,6 +40,11 @@ class Hold:
             points.append([x, y])
             angle += step
         
+        # Check the x co ordinate of previous hold, if at zero choose a hold going right
+        if prevHold.x <= 1.5:
+            # Choose from later half of potential points
+            points = points[-(round(len(points)/2)):]
+
         # Randomly select a point in the list
         randomPoint = randint(0, len(points)-1)
         

@@ -11,8 +11,8 @@ TODO:
 
     NEW TODO:
     - Amend algorithm to cater to going upwards more, amend the random selection to choose only ones where the y is greater or equal to the potential point
-    - Fix not being able to generate if against wall - need to go back and select a different potential point
-    - Fix next point y being smaller than the previous point y
+    - Fix not being able to generate if against wall - need to go back and select a different potential point - sorted by making algorithm choose a potential point to the right
+    - Fix generating adjacent holds too much
     - Create verification methods
 '''
 
