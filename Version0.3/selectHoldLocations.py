@@ -12,6 +12,7 @@ TODO:
 
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton
+import matplotlib.image as mpimg
 import pickle
 from Hold import Hold
 
@@ -20,15 +21,19 @@ isPlotting = False
 
 def on_click(event):
     global isPlotting
+    x = event.xdata
+    y = event.ydata
+    if x == None or y == None:
+        return
     if event.button is MouseButton.LEFT and not isPlotting:
         isPlotting = True
         x = int(event.xdata)
         y = int(event.ydata)
         plt.plot(x, y, "ro")
         plt.show()
-        holdType = input("Enter the holdType: ")
-        difficulty = input("Enter hold difficulty: ")
-        hold = Hold(x, y, holdType.capitalize(), difficulty)
+        #holdType = input("Enter the holdType: ")
+        #difficulty = input("Enter hold difficulty: ")
+        hold = Hold(x, y, "hold", 0)
         holds.append(hold)
         isPlotting = False
 
@@ -56,9 +61,14 @@ def saveHoldCoOrdinates():
 
 def createGraph():
     plt.close()
-    img = plt.imread("../img/stokt_board.jpg")
-    fig, ax = plt.subplots()
-    ax.imshow(img)
+    img = mpimg.imread('../img/stokt_board.jpg')
+
+    # Display the image
+    plt.imshow(img, extent=[0, img.shape[1], 0, img.shape[0]])
+
+    # Adjust axis limits to start from 0
+    plt.xlim(0, img.shape[1])
+    plt.ylim(0, img.shape[0])
     plt.connect('button_press_event', on_click)
 
 # Save this data to a new file
