@@ -20,7 +20,18 @@ TODO:
     
     - Implement choosing hold based on difficulty
 
-    - Implement choosing last hold based on distance from current hold instead of randomly from list
+    - Implement choosing hold based on hold type
+
+    - Implement choosing last hold based on distance from current hold instead of randomly from list - done
+
+    - Do these at very end!!!
+    - Implement a method to save and load routes
+        - Requires tracking all the moves into a list
+        - Save to a file that the user names
+        - Load from file by user typing in file name
+
+    - Implement route history method, on every run the route is saved to a file
+        - Implement method to select a route in the list of old routes and load it in / save it permanently
 
     - Next iteration will reduce chance of impossible moves
 '''
@@ -86,17 +97,20 @@ def generatePotentialHoldLocation(prevHold, startAngle = 15, endAngle = 165, num
         angle += step
     
     # Randomly select a point in the list
+    temp_points = points
     randomPoint = randint(0, len(points)-1)
     potentialPoint = points[randomPoint]
     while potentialPoint[0] >= 1100 or potentialPoint[0] <= 70 or potentialPoint[1] > 1500:
         print("Point x is too big / small, choosing another random point")
-        if len(points) > 1:
-            points.remove(potentialPoint)
-            randomPoint = randint(0, len(points)-1)
-            potentialPoint = points[randomPoint]
+        if len(temp_points) > 1:
+            temp_points.remove(potentialPoint)
+            randomPoint = randint(0, len(temp_points)-1)
+            potentialPoint = temp_points[randomPoint]
         else:
-            print("Using last available point")
-            potentialPoint = points[0]
+            break
+    if len(temp_points) == 1:
+        print("Randomly using a point")
+        potentialPoint = points[randint(0, len(points)-1)]
 
     point_x = round(potentialPoint[0])
     point_y = round(potentialPoint[1])
@@ -105,8 +119,8 @@ def generatePotentialHoldLocation(prevHold, startAngle = 15, endAngle = 165, num
 
 def chooseHoldNearPotentialPoint(point, tree, gridPoints):
     # Find all the points in tree at radius r to the point
-    print("POINT")
-    print(point)
+    #print("POINT")
+    #print(point)
     radius = 100
     indicesInRadius = tree.query_ball_point(point, r=radius)
     while len(indicesInRadius) == 0:
@@ -119,8 +133,8 @@ def chooseHoldNearPotentialPoint(point, tree, gridPoints):
     # Get the points in the grid from the indices found
     pointsInRadius = gridPoints[indicesInRadius]
     pointsInRadius = pointsInRadius.tolist()
-    print("POINTS IN RADIUS")
-    print(pointsInRadius)
+    #print("POINTS IN RADIUS")
+    #print(pointsInRadius)
 
     # Plot for testing
     #for point in pointsInRadius:
@@ -133,7 +147,15 @@ def chooseHoldNearPotentialPoint(point, tree, gridPoints):
     else:
         return pointsInRadius[0]
     
-
+def findNearestFinishHold(currentHold, finishHolds):
+    smallestDist = 99999999
+    nearestFinishHold = None
+    for hold in finishHolds:
+        dist = math.sqrt((currentHold.x - hold.x)**2 + (currentHold.y - hold.y)**2)
+        if dist < smallestDist:
+            smallestDist = dist
+            nearestFinishHold = hold
+    return nearestFinishHold
 
 
 def generateRoute(numOfMoves):
@@ -173,14 +195,30 @@ def generateRoute(numOfMoves):
         #plotPoint(centerPoint, "y")
         nextHoldLocation = chooseHoldNearPotentialPoint(centerPoint, tree, holdCoOrdinates)
         currentHold = Hold(nextHoldLocation[0], nextHoldLocation[1], "hold", 0)
-        plotHolds([currentHold], 'm')
+        if checkIfHoldInFinishHolds(currentHold, finishHolds):
+            print("Hold is a finish hold, breaking out early")
+            break
+        if currentMove != 7:
+            plotHolds([currentHold], 'm')
         currentMove += 1
     
     # Choose a finish hold, TODO case of already on one
-    finishHold = finishHolds[randint(0, len(finishHolds)-1)]
-    plotHolds([finishHold], "m")
+    if checkIfHoldInFinishHolds(currentHold, finishHolds):
+        plotHolds([currentHold], 'm')
+    else:
+        print("Last hold was not a finish hold, selecting nearest finish hold instead")
+        finishHold = findNearestFinishHold(currentHold, finishHolds)
+        plotHolds([finishHold], "m")
+    
+    
 
-
+def checkIfHoldInFinishHolds(hold, finishHolds):
+    holdLocation = (hold.x, hold.y)
+    for finishHold in finishHolds:
+        finishHoldLocation = (finishHold.x, finishHold.y)
+        if finishHoldLocation == holdLocation:
+            return True
+    return False
 
 def applyImageToPlt():
     img = mpimg.imread('../img/stokt_board.jpg')
@@ -206,7 +244,7 @@ def sortHolds(holds):
     return sorted(holds, key=lambda k: [k.y, k.x])
 
 
-NUM_OF_MOVES = 7
+NUM_OF_MOVES = 8
 POTENTIAL_HOLD_DISTANCE = int(1500 / NUM_OF_MOVES)
 
 generateRoute(NUM_OF_MOVES)
