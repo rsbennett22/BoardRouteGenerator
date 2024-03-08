@@ -16,9 +16,11 @@ TODO:
 
     - Fix bug where a hold can't be generated - index out of bounds error
         - coming from: nextHoldLocation = pointsInRadius[randint(0, len(pointsInRadius)-1)]
-        - suspect it's when the list length is already 1
+        - suspect it's when the list length is already 1 - fixed
     
     - Implement choosing hold based on difficulty
+
+    - Implement choosing last hold based on distance from current hold instead of randomly from list
 
     - Next iteration will reduce chance of impossible moves
 '''
@@ -86,11 +88,15 @@ def generatePotentialHoldLocation(prevHold, startAngle = 15, endAngle = 165, num
     # Randomly select a point in the list
     randomPoint = randint(0, len(points)-1)
     potentialPoint = points[randomPoint]
-    while potentialPoint[0] >= 1100 or potentialPoint[0] <= 70:
+    while potentialPoint[0] >= 1100 or potentialPoint[0] <= 70 or potentialPoint[1] > 1500:
         print("Point x is too big / small, choosing another random point")
-        points.remove(potentialPoint)
-        randomPoint = randint(0, len(points)-1)
-        potentialPoint = points[randomPoint]
+        if len(points) > 1:
+            points.remove(potentialPoint)
+            randomPoint = randint(0, len(points)-1)
+            potentialPoint = points[randomPoint]
+        else:
+            print("Using last available point")
+            potentialPoint = points[0]
 
     point_x = round(potentialPoint[0])
     point_y = round(potentialPoint[1])
@@ -99,22 +105,33 @@ def generatePotentialHoldLocation(prevHold, startAngle = 15, endAngle = 165, num
 
 def chooseHoldNearPotentialPoint(point, tree, gridPoints):
     # Find all the points in tree at radius r to the point
-    indicesInRadius = tree.query_ball_point(point, r=100)
+    print("POINT")
+    print(point)
+    radius = 100
+    indicesInRadius = tree.query_ball_point(point, r=radius)
+    while len(indicesInRadius) == 0:
+        print("Increasing search radius")
+        # Increase double search area
+        radius = radius * 2
+        indicesInRadius = tree.query_ball_point(point, r=radius)
     #print(indicesInRadius)
 
     # Get the points in the grid from the indices found
     pointsInRadius = gridPoints[indicesInRadius]
     pointsInRadius = pointsInRadius.tolist()
-    #print("POINTS IN RADIUS")
-    #print(pointsInRadius)
+    print("POINTS IN RADIUS")
+    print(pointsInRadius)
 
     # Plot for testing
     #for point in pointsInRadius:
     #    plotPoint(point, "k")
 
     # Randomly choose a point in the list and return it
-    nextHoldLocation = pointsInRadius[randint(0, len(pointsInRadius)-1)]
-    return nextHoldLocation
+    if len(pointsInRadius) > 1:
+        nextHoldLocation = pointsInRadius[randint(0, len(pointsInRadius)-1)]
+        return nextHoldLocation
+    else:
+        return pointsInRadius[0]
     
 
 
@@ -153,7 +170,6 @@ def generateRoute(numOfMoves):
     while currentMove < numOfMoves - 1:
         # generate the next hold
         centerPoint = generatePotentialHoldLocation(currentHold)
-        print(centerPoint)
         #plotPoint(centerPoint, "y")
         nextHoldLocation = chooseHoldNearPotentialPoint(centerPoint, tree, holdCoOrdinates)
         currentHold = Hold(nextHoldLocation[0], nextHoldLocation[1], "hold", 0)
@@ -191,7 +207,7 @@ def sortHolds(holds):
 
 
 NUM_OF_MOVES = 7
-POTENTIAL_HOLD_DISTANCE = 1500 / NUM_OF_MOVES
+POTENTIAL_HOLD_DISTANCE = int(1500 / NUM_OF_MOVES)
 
 generateRoute(NUM_OF_MOVES)
 plt.show()
