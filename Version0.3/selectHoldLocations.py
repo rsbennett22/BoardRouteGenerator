@@ -31,7 +31,7 @@ def on_click(event):
         y = int(event.ydata)
         plt.plot(x, y, "ro")
         plt.show()
-        #holdType = input("Enter the holdType: ")
+        holdType = input("Enter the holdType: ")
         #difficulty = input("Enter hold difficulty: ")
         hold = Hold(x, y, "hold", 0)
         holds.append(hold)
@@ -56,7 +56,7 @@ def removeLastPoint():
 
 def saveHoldCoOrdinates():
     print("Writing holds to file.")
-    with open("holds.txt", 'wb') as file:
+    with open("holds_with_holdType_and_difficulty.txt", 'wb') as file:
         pickle.dump(holds, file)
 
 def createGraph():
