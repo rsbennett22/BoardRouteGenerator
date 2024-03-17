@@ -52,9 +52,10 @@ import numpy as np
 from scipy.spatial import cKDTree
 from random import randint
 from Hold import Hold
+import Helper
 
 
-NUM_OF_MOVES = 15
+NUM_OF_MOVES = 10
 GENERATED_ROUTES = []
 
 def defineStartHolds(holds):
@@ -75,7 +76,7 @@ def defineFinishHolds(holds):
 
 def chooseAndPlotStartHold(startHolds):
     randHold = startHolds[randint(0, len(startHolds)-1)]
-    plotHolds([randHold], "m")
+    Helper.plotHolds([randHold], "m")
     return randHold
 
 def createCKDTree(holds):
@@ -175,11 +176,11 @@ def generateRoute(numOfMoves):
     
     route = []
     # Set up plt
-    applyImageToPlt()
+    Helper.applyImageToPlt()
 
     # Get holds from file, sort and plot them
-    holds = getHoldsFromFile()
-    holds = sortHolds(holds)
+    holds = Helper.getHoldsFromFile()
+    holds = Helper.sortHolds(holds)
     #plotHolds(holds, "r")
 
     # Create ckd representation of the holds
@@ -211,18 +212,18 @@ def generateRoute(numOfMoves):
             print("Hold is a finish hold, breaking out early")
             break
         if currentMove != 7:
-            plotHolds([currentHold], 'm')
+            Helper.plotHolds([currentHold], 'm')
             route.append(currentHold)
         currentMove += 1
     
     # Choose a finish hold
     if checkIfHoldInFinishHolds(currentHold, finishHolds):
-        plotHolds([currentHold], 'm')
+        Helper.plotHolds([currentHold], 'm')
         route.append(currentHold)
     else:
         print("Last hold was not a finish hold, selecting nearest finish hold instead")
         finishHold = findNearestFinishHold(currentHold, finishHolds)
-        plotHolds([finishHold], "m")
+        Helper.plotHolds([finishHold], "m")
         route.append(finishHold)
 
     GENERATED_ROUTES.append(route)
@@ -236,28 +237,8 @@ def checkIfHoldInFinishHolds(hold, finishHolds):
             return True
     return False
 
-def applyImageToPlt():
-    img = mpimg.imread('../img/stokt_board.jpg')
-    # Display the image
-    plt.imshow(img, extent=[0, img.shape[1], 0, img.shape[0]])
-    # Adjust axis limits to start from 0
-    plt.xlim(0, img.shape[1])
-    plt.ylim(0, img.shape[0])
-
-def getHoldsFromFile():
-    with open("holds.txt", "rb") as file:
-        holds = pickle.load(file)
-        return holds
-
-def plotHolds(holds, colour):
-    for hold in holds:
-        plt.plot(round(hold.x), round(hold.y), colour+"o")
-
 def plotPoint(point, colour):
     plt.plot(point[0], point[1], colour+"o")
-
-def sortHolds(holds):
-    return sorted(holds, key=lambda k: [k.y, k.x])
 
 def on_click(event):
     if event.button is MouseButton.LEFT:
@@ -300,10 +281,10 @@ def on_click(event):
                 # Display the route
                 print("Loading " + routeName)
                 plt.close()
-                applyImageToPlt()
+                Helper.applyImageToPlt()
                 index = routeNames.index(routeName)
                 route = routes[index]
-                plotHolds(route, 'm')
+                Helper.plotHolds(route, 'm')
                 plt.connect('button_press_event', on_click)
                 plt.show()
 
