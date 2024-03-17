@@ -179,7 +179,7 @@ def generateRoute(numOfMoves):
     Helper.applyImageToPlt()
 
     # Get holds from file, sort and plot them
-    holds = Helper.getHoldsFromFile()
+    global holds
     holds = Helper.sortHolds(holds)
     #plotHolds(holds, "r")
 
@@ -288,7 +288,7 @@ def on_click(event):
                 plt.connect('button_press_event', on_click)
                 plt.show()
 
-
+holds = Helper.getHoldsFromFile()
 plt.connect('button_press_event', on_click)
 plt.show()
 
