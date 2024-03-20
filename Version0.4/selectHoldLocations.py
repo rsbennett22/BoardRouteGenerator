@@ -18,7 +18,7 @@ import Helper
 
 holds = []
 isPlotting = False
-PROGRAM_MODE = "EDITING"
+PROGRAM_MODE = "PLOTTING"
 
 def on_click(event):
     global isPlotting
@@ -34,7 +34,7 @@ def on_click(event):
         plt.show()
         holdType = input("Enter the holdType: ")
         #difficulty = input("Enter hold difficulty: ")
-        hold = Hold(x, y, "hold", 0)
+        hold = Hold(x, y, holdType, 0, "r")
         holds.append(hold)
         isPlotting = False
     
@@ -96,8 +96,9 @@ def on_click(event):
         if loadOrSaveOrMode == "load":
             print("Loading file")
             # Load in the file
-            plt.close()
+            holds = Helper.getHoldsFromFile()
             createGraph()
+            Helper.plotHolds(holds, "r")
             plt.show()
 
         if loadOrSaveOrMode == "save":
@@ -123,19 +124,13 @@ def removeLastPoint():
     plt.show()
 
 def saveHoldCoOrdinates():
-    with open("holds_with_holdType.txt", 'wb') as file:
+    with open("holds.txt", 'wb') as file:
         pickle.dump(holds, file)
     print("Saved file")
 
 def createGraph():
     plt.close()
-    global holds
-    holds = Helper.getHoldsFromFile()
-
     Helper.applyImageToPlt()
-    Helper.plotHolds(holds, "r")
-    holds = Helper.sortHolds(holds)
-
     plt.connect('button_press_event', on_click)
 
 # Save this data to a new file

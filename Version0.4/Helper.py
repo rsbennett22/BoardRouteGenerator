@@ -13,12 +13,7 @@ def plotHolds(holds, colour):
         plt.plot(round(hold.x), round(hold.y), colour+"o")
 
 def getHoldsFromFile():
-    fileNames = ["holds.txt", "holds_with_holdType.txt"]
-    fileNum = int(input("What file would you like to load: \n" + str(fileNames)))
-    while fileNum not in [0,1]:
-        fileNum = input("What file would you like to load: \n" + str(fileNames))
-
-    with open(fileNames[fileNum], "rb") as file:
+    with open("holds.txt", "rb") as file:
         holds = pickle.load(file)
         return holds
     
