@@ -34,7 +34,7 @@ def on_click(event):
         plt.show()
         holdType = input("Enter the holdType: ")
         #difficulty = input("Enter hold difficulty: ")
-        hold = Hold(x, y, holdType, 0, "r")
+        hold = Hold(x, y, holdType, "r")
         holds.append(hold)
         isPlotting = False
     
@@ -134,7 +134,6 @@ def createGraph():
     plt.connect('button_press_event', on_click)
 
 # Save this data to a new file
-
 createGraph()
 plt.show()
 
