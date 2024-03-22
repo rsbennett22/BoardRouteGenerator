@@ -16,14 +16,22 @@ import numpy as np
 from Hold import Hold
 import Helper
 
-holds = []
+holds = set()
 isPlotting = False
 PROGRAM_MODE = "PLOTTING"
+lastPlottedHold = None
+lastEditedHold = None
+lastDeletedHold = None
+tmpHold = None
 
 def on_click(event):
     global isPlotting
     global PROGRAM_MODE
     global holds
+    global lastPlottedHold
+    global lastEditedHold
+    global lastDeletedHold
+
     x = event.xdata
     y = event.ydata
     if x == None or y == None:
@@ -35,8 +43,9 @@ def on_click(event):
         holdType = input("Enter the holdType: ")
         #difficulty = input("Enter hold difficulty: ")
         hold = Hold(x, y, holdType, "r")
-        holds.append(hold)
+        holds.add(hold)
         isPlotting = False
+        saveHoldCoOrdinates()
     
     if event.button is MouseButton.LEFT and PROGRAM_MODE == "EDITING":
         '''
@@ -74,22 +83,47 @@ def on_click(event):
             nearestHoldLocation = [nearestHoldLocation[0], nearestHoldLocation[1]]
         
             # Iterate list of holds to find coordinate
+
+            '''
+            ASK USER FOR INPUT ON WHAT PROPERTY THEY WANT TO EDIT
+            IF CO-ORDINATES OF THE HOLD THEN ASK FOR USER TO CLICK WHERE
+            '''
+
+            foundHold = None
             for hold in holds:
                 holdLocation = [hold.x, hold.y]
                 if holdLocation == nearestHoldLocation:
                     print("Found hold")
                     hold.print()
-                    holdType = input("Enter new hold type: ")
-                    hold.holdType = holdType
-                    print("Successfully updated hold")
-                    Helper.plotHolds([hold], "b")
-                    plt.show()
+                    foundHold = hold
                     break
 
+            holds.remove(foundHold)
+            holdType = input("Enter new hold type: ")
+            foundHold.holdType = holdType
+            holds.add(foundHold)
+
+            print("Successfully updated hold")
+            createGraph()
+            holds = set(Helper.sortHolds(holds))
+            Helper.plotHolds(holds, "r")
+            saveHoldCoOrdinates()
+            plt.show()
     
-    if event.button is MouseButton.RIGHT and PROGRAM_MODE == "PLOTTING":
-        # Remove the last point
-        removeLastPoint()
+    if event.button is MouseButton.LEFT and PROGRAM_MODE == "DELETE":
+        pass
+
+    if event.button is MouseButton.RIGHT:
+        # Undo method
+        if PROGRAM_MODE == "PLOTTING":
+            removeOrRestore = input("Remove or restore removed hold? ")
+            if removeOrRestore == "remove":
+                removeLastPlottedPoint()
+            if removeOrRestore == "restore":
+                if lastPlottedHold != None:
+                    restoreLastPlottedPoint()  
+
+            
 
     if event.button is MouseButton.MIDDLE:
         loadOrSaveOrMode = input("Load existing file, save, or change mode? ")
@@ -97,8 +131,15 @@ def on_click(event):
             print("Loading file")
             # Load in the file
             holds = Helper.getHoldsFromFile()
+            holds = set(holds)
+            print("TYPE: "+ str(type(holds)))
             createGraph()
             Helper.plotHolds(holds, "r")
+            isPlotting = False
+            PROGRAM_MODE = "PLOTTING"
+            lastPlottedHold = None
+            lastEditedHold = None
+            lastDeletedHold = None
             plt.show()
 
         if loadOrSaveOrMode == "save":
@@ -107,25 +148,37 @@ def on_click(event):
 
         if loadOrSaveOrMode == "edit":
             PROGRAM_MODE = "EDITING"
-            holds = Helper.sortHolds(holds)
+            holds = set(Helper.sortHolds(holds))
             print("Changed mode to: "+ PROGRAM_MODE)
 
         if loadOrSaveOrMode == "plot":
             PROGRAM_MODE = "PLOTTING"
             print("Changed mode to: "+ PROGRAM_MODE)
+        if loadOrSaveOrMode == "delete":
+            PROGRAM_MODE = "DELETE"
+            print("Changed mode to "+ PROGRAM_MODE)
 
-def removeLastPoint():
+def removeLastPlottedPoint():
+    global lastPlottedHold
     print("Removing last hold.")
-    holds.pop()
+    if len(holds) > 0:
+        lastPlottedHold = holds.pop()
     createGraph()
-    for hold in holds:
-        plt.plot(hold.x, hold.y, "ro")
-
+    Helper.plotHolds(holds, "r")
     plt.show()
+    print("Removed last hold")
+
+def restoreLastPlottedPoint():
+    global lastPlottedHold
+    holds.add(lastPlottedHold)
+    createGraph()
+    Helper.plotHolds(holds, "r")
+    plt.show()
+    print("Restored last deleted hold")
 
 def saveHoldCoOrdinates():
     with open("holds.txt", 'wb') as file:
-        pickle.dump(holds, file)
+        pickle.dump(Helper.sortHolds(holds), file)
     print("Saved file")
 
 def createGraph():
