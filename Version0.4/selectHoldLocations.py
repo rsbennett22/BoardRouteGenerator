@@ -2,9 +2,10 @@
 
 '''
 TODO:
-    - Rewrite most of code making it clearer, tidy into helpers etc
-    - Implement edit mode again but showing what hold has been changed
-        - Make sure it saves the updated colour!!!
+    - BUG: Editing a hold and then switching back to plotting, plotting a hold and then deleting deleted the last edited hold too
+    - Needs a rewrite bad!! 
+    - Undo doesn't work due to holds being constantly sorted, only works for last plotted point, maybe change behaviour to this
+    - Worked for now with being able to edit plotted holds :)
 '''
 
 import matplotlib.pyplot as plt
@@ -23,6 +24,8 @@ lastPlottedHold = None
 lastEditedHold = None
 lastDeletedHold = None
 tmpHold = None
+isChangingLocation = False
+positionChangeHold = None
 
 def on_click(event):
     global isPlotting
@@ -31,12 +34,15 @@ def on_click(event):
     global lastPlottedHold
     global lastEditedHold
     global lastDeletedHold
+    global positionChangeHold
+
+    global isChangingLocation 
 
     x = event.xdata
     y = event.ydata
     if x == None or y == None:
         return
-    if event.button is MouseButton.LEFT and not isPlotting and PROGRAM_MODE == "PLOTTING":
+    if event.button is MouseButton.LEFT and not isPlotting and PROGRAM_MODE == "PLOTTING" and not isChangingLocation:
         isPlotting = True
         plt.plot(int(x), int(y), "ro")
         plt.show()
@@ -48,72 +54,87 @@ def on_click(event):
         saveHoldCoOrdinates()
     
     if event.button is MouseButton.LEFT and PROGRAM_MODE == "EDITING":
-        '''
-        Methods required for editing
-        - Sorting the holds - done on every code path
-        - Adding all the holds to a cKDTree - done
-        - Finding the nearest hold to a left click, change it's colour
-        - Get the hold from the list
-            - Ask for user input for the holdType value (add in difficulty later)
-        '''
-        coordinates = []
 
-        for hold in holds:
-            coordinates.append((hold.x, hold.y))
-        
-        coordinates = np.array(coordinates)
-
-        tree = cKDTree(coordinates)
-        # Got x and y
-        # Query tree, slowly increase radius until find points
-        # Query against all points found to see which is nearest
-        print([x, y])
-        nearestPoints = tree.query_ball_point([x, y], r=1)
-        radius = 1
-        while len(nearestPoints) == 0:
-            nearestPoints = tree.query_ball_point([x,y], r=radius)
-            radius = radius + 1
-        
-        print(nearestPoints)
-        nearestHoldLocations = coordinates[nearestPoints]
-        nearestHoldLocation = []
-        if len(nearestHoldLocations) == 1:
-            # Convert location to coordinate
-            nearestHoldLocation = nearestHoldLocations[0]
-            nearestHoldLocation = [nearestHoldLocation[0], nearestHoldLocation[1]]
-        
-            # Iterate list of holds to find coordinate
-
-            '''
-            ASK USER FOR INPUT ON WHAT PROPERTY THEY WANT TO EDIT
-            IF CO-ORDINATES OF THE HOLD THEN ASK FOR USER TO CLICK WHERE
-            '''
-
-            foundHold = None
-            for hold in holds:
-                holdLocation = [hold.x, hold.y]
-                if holdLocation == nearestHoldLocation:
-                    print("Found hold")
-                    hold.print()
-                    foundHold = hold
-                    break
-
-            holds.remove(foundHold)
-            holdType = input("Enter new hold type: ")
-            foundHold.holdType = holdType
-            holds.add(foundHold)
-
-            print("Successfully updated hold")
+        if isChangingLocation:
+            positionChangeHold.x = x
+            positionChangeHold.y = y
+            holds.add(positionChangeHold)
+            print("Successfully changed hold location")
             createGraph()
             holds = set(Helper.sortHolds(holds))
             Helper.plotHolds(holds, "r")
+            Helper.plotHolds([positionChangeHold], "b")
+            positionChangeHold = None
+            isChangingLocation = False
             saveHoldCoOrdinates()
             plt.show()
-    
-    if event.button is MouseButton.LEFT and PROGRAM_MODE == "DELETE":
+        else:
+            coordinates = []
+
+            for hold in holds:
+                coordinates.append((hold.x, hold.y))
+            
+            coordinates = np.array(coordinates)
+
+            tree = cKDTree(coordinates)
+            # Got x and y
+            # Query tree, slowly increase radius until find points
+            # Query against all points found to see which is nearest
+            print([x, y])
+            nearestPoints = tree.query_ball_point([x, y], r=1)
+            radius = 1
+            while len(nearestPoints) == 0:
+                nearestPoints = tree.query_ball_point([x,y], r=radius)
+                radius = radius + 1
+            
+            print(nearestPoints)
+            nearestHoldLocations = coordinates[nearestPoints]
+            nearestHoldLocation = []
+            if len(nearestHoldLocations) == 1:
+                # Convert location to coordinate
+                nearestHoldLocation = nearestHoldLocations[0]
+                nearestHoldLocation = [nearestHoldLocation[0], nearestHoldLocation[1]]
+            
+                # Iterate list of holds to find coordinate
+
+                '''
+                ASK USER FOR INPUT ON WHAT PROPERTY THEY WANT TO EDIT
+                IF CO-ORDINATES OF THE HOLD THEN ASK FOR USER TO CLICK WHERE
+                '''
+
+                foundHold = None
+                for hold in holds:
+                    holdLocation = [hold.x, hold.y]
+                    if holdLocation == nearestHoldLocation:
+                        print("Found hold")
+                        hold.print()
+                        foundHold = hold
+                        break
+
+                holds.remove(foundHold)
+                property = input("What property do you want to change: ")
+                if property == "position":
+                    isChangingLocation = True
+                    positionChangeHold = foundHold
+                    print("Click where you want the new location to be...")
+                    
+                if property == "holdType":
+                    holdType = input("Enter new hold type: ")
+                    foundHold.holdType = holdType
+                    holds.add(foundHold)
+
+                    print("Successfully updated hold")
+                    createGraph()
+                    holds = set(Helper.sortHolds(holds))
+                    Helper.plotHolds(holds, "r")
+                    Helper.plotHolds([foundHold], "b")
+                    saveHoldCoOrdinates()
+                    plt.show()
+
+    if event.button is MouseButton.LEFT and PROGRAM_MODE == "DELETE" and not isChangingLocation:
         pass
 
-    if event.button is MouseButton.RIGHT:
+    if event.button is MouseButton.RIGHT and not isChangingLocation:
         # Undo method
         if PROGRAM_MODE == "PLOTTING":
             removeOrRestore = input("Remove or restore removed hold? ")
@@ -125,7 +146,7 @@ def on_click(event):
 
             
 
-    if event.button is MouseButton.MIDDLE:
+    if event.button is MouseButton.MIDDLE and not isChangingLocation:
         loadOrSaveOrMode = input("Load existing file, save, or change mode? ")
         if loadOrSaveOrMode == "load":
             print("Loading file")
