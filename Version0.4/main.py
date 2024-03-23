@@ -8,7 +8,7 @@ TODO:
     - Rewrite most of code, maybe try refactoring into different service classes
 
     - Plot all holds with hold type
-        - Ughhhh the painnnn
+        - Ughhhh the painnnn - DONE IT!!!!!
 
     - Make new generation algorithm
         - Make it clearer how it works
@@ -136,6 +136,7 @@ def chooseHoldNearPotentialPoint(point, tree, gridPoints):
 def findNearestFinishHold(currentHold, finishHolds):
     smallestDist = 99999999
     nearestFinishHold = None
+    # Check each hold in finish holds, save which one is smallest distance until checked all finish holds
     for hold in finishHolds:
         dist = math.sqrt((currentHold.x - hold.x)**2 + (currentHold.y - hold.y)**2)
         if dist < smallestDist:
@@ -185,7 +186,14 @@ def generateRoute(numOfMoves):
         centerPoint = generatePotentialHoldLocation(currentHold, POTENTIAL_HOLD_DISTANCE)
         #plotPoint(centerPoint, "y")
         nextHoldLocation = chooseHoldNearPotentialPoint(centerPoint, tree, holdCoOrdinates)
-        currentHold = Hold(nextHoldLocation[0], nextHoldLocation[1], "hold", 0)
+
+        #Find the hold with the same co-ordinates generated
+        currentHold = None
+        for hold in holds:
+            if hold.x == nextHoldLocation[0] and hold.y == nextHoldLocation[1]:
+                currentHold = hold
+                break
+
         if checkIfHoldInFinishHolds(currentHold, finishHolds):
             print("Hold is a finish hold, breaking out early")
             break
@@ -208,10 +216,8 @@ def generateRoute(numOfMoves):
     
 
 def checkIfHoldInFinishHolds(hold, finishHolds):
-    holdLocation = (hold.x, hold.y)
     for finishHold in finishHolds:
-        finishHoldLocation = (finishHold.x, finishHold.y)
-        if finishHoldLocation == holdLocation:
+        if finishHold == hold:
             return True
     return False
 

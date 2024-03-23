@@ -24,6 +24,11 @@ class Hold:
             print("difficulty: " + str(self.difficulty))
             print("holdColour: " + str(self.holdColour))
 
+    def debugPrint(self, debug):
+         if debug:
+              self.print()
+              print()
+
     def calculateDifficulty(self, prevHolds, hand, routeGrade):
         # Calculates the difficulty level given to the hold outlined below
         pass
