@@ -38,6 +38,11 @@ def plotPoint(point, colour, debug):
     if debug:
         plt.plot(point[0], point[1], colour+"o")
 
+def plotPoints(points, colour, debug):
+    if debug:
+        for point in points:
+            plotPoint(point, colour, debug)
+
 def debugPrint(message, debug):
     if debug:
         print(message)

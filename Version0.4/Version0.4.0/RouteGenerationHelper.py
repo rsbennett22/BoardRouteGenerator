@@ -7,6 +7,8 @@ import random
 from random import randint
 import Helper
 
+DEBUG = True
+
 def defineStartHolds(holds):
     # Start holds are holds at from the bottom to a height y
     startHolds = []
@@ -43,11 +45,20 @@ def calculateInitialScore(startHold):
         score = 1
     return score
 
-def generatePotentialHoldLocations(prevHold, distance, startAngle = 0, endAngle = 180, numPotentialPositions = 30):
+def calculateNewScore(prevHold, hold, score):
+    if hold.y >= prevHold.y:
+        Helper.debugPrint("Increasing score: ", DEBUG)
+        score = score + 1
+    # Maybe need to decrease it too?
+
+    return score
+
+
+def generatePotentialHoldLocations(prevHold, distance, startAngle = 10, endAngle = 170, numPotentialPositions = 30):
     # Generate arc of points at a set distance from the hold co ordinates
     points = []
     angle = startAngle
-    step = (endAngle - startAngle) / numPotentialPositions
+    step = (endAngle - startAngle) / (numPotentialPositions - 1)
 
     while angle <= endAngle:
         # Generate point on arc for the angle
@@ -66,9 +77,48 @@ def generatePotentialHoldLocations(prevHold, distance, startAngle = 0, endAngle 
     return points
 
 
-def chooseHoldNearPotentialLocation(currentHold, holds, point, tree, gridPoints, debug, maxHoldDist):
+def choosePoint(prevHold, score, points, maxDist):
+    # Take into account the value of score to define likelihood of choosing a point higher up the wall
+    '''
+    Score being higher means greater chance to choose a point that's y is less than max y / 2
+    Generate the weights for each point, then randomly choose based on weights
+    '''
+    #weights = calculateWeights(prevHold, score, points, maxDist)
+    Helper.debugPrint("Calculated weights: " + str(weights), DEBUG)
+    randomPoint = random.choices(points, weights)[0]
+    Helper.debugPrint("Generated random point", DEBUG)
+    return randomPoint
+
+
+def calculateWeightsForPoints(hold, points, score, maxY):
+    weights = []
+    weight = 50
+    print("MAX Y " + str(maxY))
+    thresholdY = (hold.y + maxY) / 2
+    print("Threshold: " + str(thresholdY))
+    for point in points:
+        if point[1] < thresholdY:
+            weight = weight + ((weight * score) / 5)
+        else:
+            weight = weight - ((weight * score) / 5)
+        
+        weights.append(weight)
+        weight = 50
+
+    return weights
+
+def adjustScore(score, point, hold, maxY):
+    thresholdY = (hold.y + maxY) / 2
+    if point[1] < thresholdY:
+        score = score + 1
+    else:
+        score = score - 1
+    return score
+
+
+def chooseHoldNearPotentialLocation(currentHold, holds, point, tree, gridPoints, maxHoldDist):
     # Find all the points in tree at radius r to the point
-    radius = 100
+    radius = 50
     indicesInRadius = tree.query_ball_point(point, r=radius)
     while len(indicesInRadius) == 0:
         print("Increasing search radius")
@@ -80,20 +130,16 @@ def chooseHoldNearPotentialLocation(currentHold, holds, point, tree, gridPoints,
     pointsInRadius = gridPoints[indicesInRadius]
     pointsInRadius = pointsInRadius.tolist()
 
-    if debug:
+    if DEBUG:
         for point in pointsInRadius:
-            Helper.plotPoint(point, "k", debug)
+            Helper.plotPoint(point, "k", DEBUG)
 
-    # Randomly choose a point in the list and return it
+    # Find hold, check not too close, if exhaust list
+            
+    pointsCopy = pointsInRadius
+
     nextHoldLocation = pointsInRadius[randint(0, len(pointsInRadius)-1)]
     nextHold = Helper.findHoldByCoordinate(holds, nextHoldLocation)
-    distanceToCurrentHold = calculateDistanceBetweenTwoHolds(currentHold, nextHold)
-    while distanceToCurrentHold < ((maxHoldDist / 1.4)):
-        Helper.debugPrint("Generated hold too close to previous hold, generating another.", debug)
-        pointsInRadius.remove(nextHoldLocation)
-        nextHoldLocation = pointsInRadius[randint(0, len(pointsInRadius)-1)]
-        nextHold = Helper.findHoldByCoordinate(holds, nextHoldLocation)
-        distanceToCurrentHold = calculateDistanceBetweenTwoHolds(currentHold, nextHold)
 
     #nextHold = Helper.findHoldByCoordinate(holds, nextHoldLocation)
     return nextHold
@@ -101,7 +147,7 @@ def chooseHoldNearPotentialLocation(currentHold, holds, point, tree, gridPoints,
 
 
 def calculateDistanceBetweenTwoHolds(hold1, hold2):
-     return math.sqrt((hold1.x - hold2.x)**2 + (hold1.y - hold2.y)**2)
+    return math.sqrt((hold1.x - hold2.x)**2 + (hold1.y - hold2.y)**2)
 
 def findClosestHold(hold, holds):
     shortestDistance = 9999
@@ -113,3 +159,23 @@ def findClosestHold(hold, holds):
             shortestDistance = distance
 
     return closestHold
+
+
+def calculateScoreFromNewPoint(score, point, hold, maxDist):
+    Helper.debugPrint("MAX DIST: " + str(maxDist), DEBUG)
+    pointY = point[1]
+    midY = (hold.y + maxDist) / 2
+    Helper.debugPrint("Mid point y: " + str(midY), DEBUG)
+    if pointY >= midY:
+        Helper.debugPrint("Point greater than mid, increasing score.", DEBUG)
+        score = score + 1
+    else:
+        Helper.debugPrint("Point less than mid, decreasing score.", DEBUG)
+        score = score - 1
+
+    return score
+
+
+'''
+https://www.geeksforgeeks.org/how-to-get-weighted-random-choice-in-python/
+'''
