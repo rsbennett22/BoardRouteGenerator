@@ -71,17 +71,22 @@ def algorithm(numOfHolds):
 
     currentHold = 0
     midHold = None
-    numOfHolds = numOfHolds - 2
-    while currentHold != numOfHolds:
-        if numOfHolds == -2:
-            GENERATED_ROUTE = []
-            break
-        if numOfHolds == -1:
-            GENERATED_ROUTE = [GENERATED_ROUTE[0]]
-            break
-        if numOfHolds == 0:
-            break
 
+    # Check if 0, 1 or 2 holds chosen
+    lessThanTwoHoldsWanted = RouteHelper.checkIfLessThanTwoHoldsWanted(numOfHolds)
+
+    if (lessThanTwoHoldsWanted):
+        if numOfHolds == 0:
+            # Empty board
+            GENERATED_ROUTE = []
+        if numOfHolds == 1:
+            # One hold wanted
+            GENERATED_ROUTE = [GENERATED_ROUTE[0]]
+
+    # Increase current hold by 2 as start hold and finish hold been generated already
+    currentHold = 2
+    while currentHold < numOfHolds and not lessThanTwoHoldsWanted:
+        
         # Find the hold with the largest distance to the next hold in list
         largestDistHolds = RouteHelper.findLargestDistanceBetweenHolds(GENERATED_ROUTE)
         print(largestDistHolds)
@@ -89,11 +94,12 @@ def algorithm(numOfHolds):
         hold2 = largestDistHolds[1]
         hold1Pos = largestDistHolds[2]
 
-        # Generate the midHold
-        midHold = RouteHelper.createMidHold(hold1, hold2, holds, tree, holdPoints)
+        # Generate the midHold and insert into route
+        midHold = RouteHelper.createMidHold(hold1, hold2, holds, tree, holdPoints, GENERATED_ROUTE)
         GENERATED_ROUTE.insert(hold1Pos+1, midHold)
         
         currentHold += 1
+    
 
 
 def runProgram():
@@ -106,15 +112,35 @@ def runProgram():
     # For testing purpose right now, must be removed at some point
     #GlobalHelper.plotHolds(holds)
     GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
+    routeLength = 0
+    for hold in GENERATED_ROUTE:
+        hold.print()
+        print()
+        routeLength +=1
+
+    print("ROUTE LENGTH: " + str(routeLength))
     plt.show()
 
 
 runProgram()
 
 
-'''
-Start adding some variation to where the midpoint is, randomise the x and y from the actual middle between the two holds
-This will hopefully add some interesting movement in and reduce rigidity
+def testAlgorithmGeneratesExpectedLengthRoutes():
+    # Generate 10 routes for each route length 0 - 15, verify the route length is correct
+    global GENERATED_ROUTE
+    numFailed = 0
+    numPassed = 0
 
+    for i in range(15):
+        for y in range(50):
+            setup()
+            # Generate 10 routes per route length i
+            algorithm(i)
+            if (len(GENERATED_ROUTE) != i):
+                numFailed += 1
+            else:
+                numPassed += 1
+            GENERATED_ROUTE = []
+    print("FAILED: " + str(numFailed) + "\nPASSED: " + str(numPassed))
 
-'''
+#testAlgorithmGeneratesExpectedLengthRoutes()

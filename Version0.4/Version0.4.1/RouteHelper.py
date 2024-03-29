@@ -59,16 +59,22 @@ def randomlySelectFinishHold(finishHolds):
     return finishHolds[randomHold]
 
 
-def createMidHold(hold1, hold2, holds, tree, gridPoints):
+def createMidHold(hold1, hold2, holds, tree, gridPoints, generatedRoute):
     midPointX = (hold1.x + hold2.x) / 2
     midPointY = (hold1.y + hold2.y) / 2
 
+    # TODO: Add some variation to this point here
+
     midPoint = (midPointX, midPointY)
 
-    GlobalHelper.plotAtPoint(midPointX, midPointY, "y")
+    GlobalHelper.plotPoint(midPointX, midPointY, "y")
     # Find an area of holds around the midpoint
     midHold = generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints)
+    while midHold in generatedRoute:
+        print("GENERATED HOLD ALREADY IN ROUTE, CHOOSING ANOTHER")
+        midHold = generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints)
     return midHold
+    
 
 
 
@@ -76,21 +82,21 @@ def generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints):
     # Find all the points in tree at radius r to the point
     radius = 50
     indicesInRadius = tree.query_ball_point(midPoint, r=radius)
-    timesIncreased = 0
-    while len(indicesInRadius) < 12 and timesIncreased < 2:
+    
+    # Increasing this makes the route spread out more as more holds to choose from randomly
+    while len(indicesInRadius) < 15:
         print("Increasing search radius")
         # Double search area
         radius = radius + 25
         indicesInRadius = tree.query_ball_point(midPoint, r=radius)
-        timesIncreased += 1
 
     # Get the points in the grid from the indices found
     pointsInRadius = gridPoints[indicesInRadius]
     pointsInRadius = pointsInRadius.tolist()
 
     # Debug stuff
-    for point in pointsInRadius:
-        GlobalHelper.plotAtPoint(point[0], point[1], "k")
+    #for point in pointsInRadius:
+    #    GlobalHelper.plotPoint(point[0], point[1], "k")
 
     midHoldLocation = pointsInRadius[randint(0, len(pointsInRadius)-1)]
     midHold = getHoldAtLocation(midHoldLocation, holds)
@@ -206,3 +212,9 @@ def generateMidpoint(hold1, hold2, maxDist):
     midPointY = randint(hold1.y, hold1.y + maxDist + 50)
 
     return (midPointX, midPointY)
+
+def checkIfLessThanTwoHoldsWanted(numOfHolds):
+    if numOfHolds <= 2:
+        return True
+    else:
+        return False

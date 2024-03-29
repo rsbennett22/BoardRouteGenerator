@@ -51,5 +51,5 @@ def askUserForNumOfHolds():
         except ValueError:
             print("Invalid number")
 
-def plotAtPoint(x, y, colour):
+def plotPoint(x, y, colour):
     plt.plot(x, y, colour+"o")
