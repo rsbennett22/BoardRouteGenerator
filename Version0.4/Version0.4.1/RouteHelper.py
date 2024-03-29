@@ -49,34 +49,32 @@ def generateCkdTreeWithHoldPoints(holds):
     return (tree, holdPoints)
 
 
-def randomlySelectStartHold(startHolds):
-    randomHold = randint(0, len(startHolds)-1)
-    return startHolds[randomHold]
+def randomlySelectHoldFromList(holds):
+    randomHold = randint(0, len(holds)-1)
+    return holds[randomHold]
 
 
-def randomlySelectFinishHold(finishHolds):
-    randomHold = randint(0, len(finishHolds)-1)
-    return finishHolds[randomHold]
-
-
-def createMidHold(hold1, hold2, holds, tree, gridPoints, generatedRoute):
+def createMidHold(hold1, hold2, holds, tree, gridPoints, finishHolds, generatedRoute):
     midPointX = (hold1.x + hold2.x) / 2
     midPointY = (hold1.y + hold2.y) / 2
 
-    # TODO: Add some variation to this point here
+    # TODO: Add some variation to this point here? Resolved in generateRandomMidhold 
 
     midPoint = (midPointX, midPointY)
 
-    GlobalHelper.plotPoint(midPointX, midPointY, "y")
+    #Debug stuff
+    #GlobalHelper.plotPoint(midPointX, midPointY, "y")
+
     # Find an area of holds around the midpoint
     midHold = generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints)
-    while midHold in generatedRoute:
-        print("GENERATED HOLD ALREADY IN ROUTE, CHOOSING ANOTHER")
+    isMidHoldSuitable = checkIfMidHoldSuitable(midHold, finishHolds, generatedRoute)
+    
+    while not isMidHoldSuitable:
         midHold = generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints)
+        isMidHoldSuitable = checkIfMidHoldSuitable(midHold, finishHolds, generatedRoute)
+
     return midHold
     
-
-
 
 def generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints):
     # Find all the points in tree at radius r to the point
@@ -85,7 +83,6 @@ def generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints):
     
     # Increasing this makes the route spread out more as more holds to choose from randomly
     while len(indicesInRadius) < 15:
-        print("Increasing search radius")
         # Double search area
         radius = radius + 25
         indicesInRadius = tree.query_ball_point(midPoint, r=radius)
@@ -186,14 +183,12 @@ def findLargestDistanceBetweenHolds(generatedRoute):
         hold2 = generatedRoute[i+1]
         distance = calculateDistanceBetweenTwoHolds(hold1, hold2)
         holdDistances.append(distance)
-    print("HOLD DISTANCES: " + str(holdDistances))
     
     largestDistancePos = -1
     largestDistance = -1
     if len(holdDistances) > 1:
         for i in range(0, len(holdDistances)):
             if holdDistances[i] > largestDistance:
-                print("Found bigger dist: " + str(holdDistances[i]))
                 largestDistance = holdDistances[i]
                 largestDistancePos = i
     else:
@@ -218,3 +213,31 @@ def checkIfLessThanTwoHoldsWanted(numOfHolds):
         return True
     else:
         return False
+    
+
+def checkIfGeneratedHoldTooCloseToAnyHoldInRoute(generatedRoute, newHold):
+    # Prevent bunching of holds by forcing at least 1 hold of distance
+    for hold in generatedRoute:
+        distance = calculateDistanceBetweenTwoHolds(hold, newHold)
+
+        # Vary this value to increase / decrease distances between holds on route
+        if distance <= 100:
+            return True
+    return False
+
+
+def checkIfMidHoldInList(holds, newHold):
+    for hold in holds:
+        if newHold == hold:
+            return True
+    return False
+
+
+def checkIfMidHoldSuitable(midHold, finishHolds, generatedRoute):
+    isTooClose = checkIfGeneratedHoldTooCloseToAnyHoldInRoute(generatedRoute, midHold)
+    isAFinishHold = checkIfMidHoldInList(finishHolds, midHold)
+    isInGeneratedRoute = checkIfMidHoldInList(generatedRoute, midHold)
+
+    if not isTooClose and not isAFinishHold and not isInGeneratedRoute:
+        return True
+    return False

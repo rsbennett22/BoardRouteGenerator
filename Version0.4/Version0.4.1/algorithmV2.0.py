@@ -3,25 +3,7 @@
 import logging
 import RouteHelper
 import GlobalHelper
-import Hold
 import matplotlib.pyplot as plt
-from random import randint
-
-'''
-NOTE: Need to have a check for the case that start hold and finish hold are practically in line
-        - choose a midpoint to the left or right (if possible due to walls) 
-        - generate a hold, continue alg as normal
-
-        - if want to widen route generate with different params
-
-        - Need to prevent bunching and too large distance between holds, increase chance for a hold to be picked
-          to be split if the distance is the greatest to the next hold
-
-        - When choosing a random hold in an area, check if it's very close to hold already in the generated route
-          if too close to a hold choose another, repeat until found one
-
-'''
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -55,19 +37,17 @@ def setup():
     holdPoints = treeAndHoldPoints[1]
     startHolds = RouteHelper.defineStartHolds(holds)
     finishHolds = RouteHelper.defineFinishHolds(holds)
-    startHold = RouteHelper.randomlySelectStartHold(startHolds)
-    finishHold = RouteHelper.randomlySelectFinishHold(finishHolds)
+    startHold = RouteHelper.randomlySelectHoldFromList(startHolds)
+    finishHold = RouteHelper.randomlySelectHoldFromList(finishHolds)
     GENERATED_ROUTE.append(startHold)
     GENERATED_ROUTE.append(finishHold)
-    if RouteHelper.areStartAndFinishInLine(startHold, finishHold):
-        print("WIDENING ROUTE")
-        WIDEN_ROUTE = True
 
 
 def algorithm(numOfHolds):
     global GENERATED_ROUTE
     global tree
     global holdPoints
+    global finishHolds
 
     currentHold = 0
     midHold = None
@@ -89,13 +69,12 @@ def algorithm(numOfHolds):
         
         # Find the hold with the largest distance to the next hold in list
         largestDistHolds = RouteHelper.findLargestDistanceBetweenHolds(GENERATED_ROUTE)
-        print(largestDistHolds)
         hold1 = largestDistHolds[0]
         hold2 = largestDistHolds[1]
         hold1Pos = largestDistHolds[2]
 
         # Generate the midHold and insert into route
-        midHold = RouteHelper.createMidHold(hold1, hold2, holds, tree, holdPoints, GENERATED_ROUTE)
+        midHold = RouteHelper.createMidHold(hold1, hold2, holds, tree, holdPoints, finishHolds, GENERATED_ROUTE)
         GENERATED_ROUTE.insert(hold1Pos+1, midHold)
         
         currentHold += 1
@@ -109,16 +88,7 @@ def runProgram():
     setup()
     numOfHolds = GlobalHelper.askUserForNumOfHolds()
     algorithm(numOfHolds)
-    # For testing purpose right now, must be removed at some point
-    #GlobalHelper.plotHolds(holds)
     GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
-    routeLength = 0
-    for hold in GENERATED_ROUTE:
-        hold.print()
-        print()
-        routeLength +=1
-
-    print("ROUTE LENGTH: " + str(routeLength))
     plt.show()
 
 
