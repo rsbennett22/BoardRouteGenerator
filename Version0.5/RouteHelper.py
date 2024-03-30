@@ -4,10 +4,7 @@ import logging
 import numpy as np
 from scipy.spatial import cKDTree
 import math
-import random
 from random import randint
-import matplotlib.image as mpimg
-import GlobalHelper
 
 
 logger = logging.getLogger(__name__)
@@ -48,7 +45,8 @@ def randomlySelectHoldFromList(holds, holdType):
     for hold in holds:
         if hold.holdType == holdType:
             holdsOfHoldType.append(hold)
-    if holdType == "all":
+    
+    if holdType == "all" or len(holdsOfHoldType) == 0:
         return holds[randint(0, len(holds)-1)]
     else:
         return holdsOfHoldType[randint(0, len(holdsOfHoldType)-1)]
