@@ -1,4 +1,4 @@
-### Rafe Bennett 29/04/2024
+### Rafe Bennett 25/04/2024
 
 '''
 TODO:
@@ -6,10 +6,16 @@ TODO:
         - Want it to work with just one hold type first, start with jugs as easiest to see if working correctly,
           then add pinches as next easiest to verify before unleashing full hold selection option
 
-        - Need to modify method that chooses a random hold to instead choose a random hold that is the hold type wanted
-            - Generate a list of holds, find all the holds of hold type x, randomly choose from this list of holds
-            - If can't choose a hold then change where the midpoint is
+    - Ask user for hold type wanted
+    - Choose start and finish holds based on hold type
+    - Choose every random hold based on hold type
+        - Generate list of possible random holds
+        - Create a list of holds from that that are holdType
+        - Return random element from that list
+
+    - Done for single hold type, need to work on not being able to find a hold of hold type
 '''
+
 
 
 import logging
@@ -30,7 +36,7 @@ tree = None
 holdPoints = None
 
 
-def setup():
+def setup(holdType):
     global GENERATED_ROUTE
     global holds
     global startHolds
@@ -47,13 +53,13 @@ def setup():
     holdPoints = treeAndHoldPoints[1]
     startHolds = RouteHelper.defineStartHolds(holds)
     finishHolds = RouteHelper.defineFinishHolds(holds)
-    startHold = RouteHelper.randomlySelectHoldFromList(startHolds)
-    finishHold = RouteHelper.randomlySelectHoldFromList(finishHolds)
+    startHold = RouteHelper.randomlySelectHoldFromList(startHolds, holdType)
+    finishHold = RouteHelper.randomlySelectHoldFromList(finishHolds, holdType)
     GENERATED_ROUTE.append(startHold)
     GENERATED_ROUTE.append(finishHold)
 
 
-def algorithm(numOfHolds):
+def algorithm(numOfHolds, holdType):
     global GENERATED_ROUTE
     global tree
     global holdPoints
@@ -85,21 +91,26 @@ def algorithm(numOfHolds):
         hold1Pos = largestDistHolds[2]
 
         # Generate the midHold and insert into route
-        midHold = RouteHelper.createMidHold(hold1, hold2, holds, tree, holdPoints, finishHolds, GENERATED_ROUTE)
+        midHold = RouteHelper.createMidHold(hold1, hold2, holds, tree, holdPoints, finishHolds, GENERATED_ROUTE, holdType)
         GENERATED_ROUTE.insert(hold1Pos+1, midHold)
         
         currentHold += 1
     
 
-
 def runProgram():
     global GENERATED_ROUTE
     global holds
+    global startHolds
+    global finishHolds
 
-    setup()
     numOfHolds = GlobalHelper.askUserForNumOfHolds()
-    algorithm(numOfHolds)
+    holdType = GlobalHelper.askUserForHoldTypeWanted()
+    setup(holdType)
+    algorithm(numOfHolds, holdType)
     GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
+    for hold in GENERATED_ROUTE:
+        hold.print()
+        print()
     plt.show()
 
 
