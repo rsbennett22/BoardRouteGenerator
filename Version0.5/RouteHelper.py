@@ -78,9 +78,17 @@ def createMidHold(hold1, hold2, holds, tree, gridPoints, finishHolds, generatedR
     midHold = generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints, holdType)
     isMidHoldSuitable = checkIfMidHoldSuitable(midHold, finishHolds, generatedRoute)
     
+    attemptsToGenerate = 0
+    currentHoldType = holdType
+
     while not isMidHoldSuitable:
-        midHold = generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints, holdType)
+        midHold = generateRandomMidHoldAroundMidPoint(midPoint, holds, tree, gridPoints, currentHoldType)
         isMidHoldSuitable = checkIfMidHoldSuitable(midHold, finishHolds, generatedRoute)
+        attemptsToGenerate += 1
+
+        if attemptsToGenerate == 5:
+            currentHoldType = "all"
+            attemptsToGenerate = 0
 
     return midHold
     
@@ -175,7 +183,7 @@ def checkIfGeneratedHoldTooCloseToAnyHoldInRoute(generatedRoute, newHold):
         distance = calculateDistanceBetweenPoints(hold.x, hold.y, newHold.x, newHold.y)
 
         # Vary this value to increase / decrease distances between holds on route
-        if distance <= 100:
+        if distance <= 80:
             return True
     return False
 
