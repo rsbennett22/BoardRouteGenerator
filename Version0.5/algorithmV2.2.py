@@ -40,6 +40,17 @@ def setup(holdType):
     global tree
     global holdPoints
 
+    plt.close()
+
+    GENERATED_ROUTE = []
+    holds = None
+    startHolds = []
+    finishHolds = []
+    startHold = None
+    finishHold = None
+    tree = None
+    holdPoints = None
+
     GlobalHelper.applyImageToPlt()
     holds = GlobalHelper.getHoldsFromFile()
     treeAndHoldPoints = RouteHelper.generateCkdTreeWithHoldPoints(holds)
@@ -92,37 +103,36 @@ def algorithm(numOfHolds, holdType):
     
 
 def runProgram():
-
-    # Implement route saving and loading
-
     global GENERATED_ROUTE
     global holds
     global startHolds
     global finishHolds
 
-    loadOrGenerate = GlobalHelper.askUserToLoadOrGenerateRoute()
-    if loadOrGenerate == "g":
-        numOfHolds = GlobalHelper.askUserForNumOfHolds()
-        holdType = GlobalHelper.askUserForHoldTypeWanted()
-        setup(holdType)
-        algorithm(numOfHolds, holdType)
-        GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
-        for hold in GENERATED_ROUTE:
-            hold.print()
-            print()
-        plt.show()
+    while True:
+        loadOrGenerate = GlobalHelper.askUserToLoadOrGenerateRoute()
+        if loadOrGenerate == "g":
+            numOfHolds = GlobalHelper.askUserForNumOfHolds()
+            holdType = GlobalHelper.askUserForHoldTypeWanted()
+            setup(holdType)
+            algorithm(numOfHolds, holdType)
+            GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
+            for hold in GENERATED_ROUTE:
+                hold.print()
+                print()
+            plt.show()
 
-        # Ask user if want to save generated route
-        saveRoute = GlobalHelper.askUserSaveRoute()
-        if saveRoute == "y":
-            GlobalHelper.saveRoute(GENERATED_ROUTE)
+            # Ask user if want to save generated route
+            saveRoute = GlobalHelper.askUserSaveRoute()
+            if saveRoute == "y":
+                GlobalHelper.saveRoute(GENERATED_ROUTE)
 
-    else:
-        # Load route from file
-        GlobalHelper.applyImageToPlt()
-        GENERATED_ROUTE = GlobalHelper.loadRoute()
-        GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
-        plt.show()
+        else:
+            # Load route from file
+            plt.close()
+            GlobalHelper.applyImageToPlt()
+            GENERATED_ROUTE = GlobalHelper.loadRoute()
+            GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
+            plt.show()
 
 
 runProgram()
