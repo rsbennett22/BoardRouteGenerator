@@ -2,18 +2,10 @@
 
 '''
 TODO:
-    - Want to be able to generate route by hold type(s)
-        - Want it to work with just one hold type first, start with jugs as easiest to see if working correctly,
-          then add pinches as next easiest to verify before unleashing full hold selection option
-
-    - Ask user for hold type wanted
-    - Choose start and finish holds based on hold type
-    - Choose every random hold based on hold type
-        - Generate list of possible random holds
-        - Create a list of holds from that that are holdType
-        - Return random element from that list
-
-    - Done for single hold type, need to work on not being able to find a hold of hold type
+    - Want to be able to choose multiple hold types - not necessary though
+        - Needs to have at least 1 of each hold type
+        - Increase weighting for hold type if not in generated route on each iteration
+            - Simple would be to force the next type to be one of the remaining
 '''
 
 

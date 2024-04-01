@@ -44,12 +44,13 @@ def applyImageToPlt():
 
 def askUserForNumOfHolds():
     numOfHolds = -1
-    while numOfHolds not in [range(0, 16)]:
+    while numOfHolds not in list(range(0, 16)):
         try:
             numOfHolds = int(input("Enter the number of holds wanted in the route: [0 - 15]"))
-            return numOfHolds
         except ValueError:
             print("Invalid number")
+
+    return numOfHolds
 
 
 def plotPoint(x, y, colour):
