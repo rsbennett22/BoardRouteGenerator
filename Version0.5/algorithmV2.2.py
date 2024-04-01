@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+plt.ion()
+
 GENERATED_ROUTE = []
 holds = None
 startHolds = []
@@ -90,20 +92,37 @@ def algorithm(numOfHolds, holdType):
     
 
 def runProgram():
+
+    # Implement route saving and loading
+
     global GENERATED_ROUTE
     global holds
     global startHolds
     global finishHolds
 
-    numOfHolds = GlobalHelper.askUserForNumOfHolds()
-    holdType = GlobalHelper.askUserForHoldTypeWanted()
-    setup(holdType)
-    algorithm(numOfHolds, holdType)
-    GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
-    for hold in GENERATED_ROUTE:
-        hold.print()
-        print()
-    plt.show()
+    loadOrGenerate = GlobalHelper.askUserToLoadOrGenerateRoute()
+    if loadOrGenerate == "g":
+        numOfHolds = GlobalHelper.askUserForNumOfHolds()
+        holdType = GlobalHelper.askUserForHoldTypeWanted()
+        setup(holdType)
+        algorithm(numOfHolds, holdType)
+        GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
+        for hold in GENERATED_ROUTE:
+            hold.print()
+            print()
+        plt.show()
+
+        # Ask user if want to save generated route
+        saveRoute = GlobalHelper.askUserSaveRoute()
+        if saveRoute == "y":
+            GlobalHelper.saveRoute(GENERATED_ROUTE)
+
+    else:
+        # Load route from file
+        GlobalHelper.applyImageToPlt()
+        GENERATED_ROUTE = GlobalHelper.loadRoute()
+        GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
+        plt.show()
 
 
 runProgram()

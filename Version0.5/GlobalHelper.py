@@ -25,8 +25,8 @@ def plotHolds(holds, colour="r"):
         plt.plot(hold.x, hold.y, colour+"o")
 
 
-def getHoldsFromFile():
-    with open("holds.txt", "rb") as file:
+def getHoldsFromFile(fileName = "holds.txt"):
+    with open(fileName, "rb") as file:
         holds = pickle.load(file)
         holds = sortHolds(holds)
         holds = roundHoldCoordinates(holds)
@@ -65,3 +65,59 @@ def askUserForHoldTypeWanted():
     
     return holdType
 
+def askUserToLoadOrGenerateRoute():
+    loadOrGenerate = ""
+    while loadOrGenerate not in ["l", "g"]:
+        loadOrGenerate = str(input("Load existing route or generate a new one: [l, g]"))
+    
+    return loadOrGenerate
+
+
+def askUserSaveRoute():
+    saveRoute = ""
+    while saveRoute not in ["y", "n"]:
+        saveRoute = str(input("Save generated route? [y/n]"))
+
+    return saveRoute
+
+
+def saveRoute(route):
+    with open("routes.txt", "ab") as file:
+        routeName = input("Enter route name: ")
+        pickle.dump((routeName, route), file)
+
+
+def loadRoute():
+    with open("routes.txt", "rb") as file:
+        routes = []
+        while True:
+            try:
+                routes.append(pickle.load(file))
+            except EOFError:
+                break
+    
+    if len(routes) > 0:
+        routeNames = []
+        for route in routes:
+            # Print each route name
+            routeNames.append(route[0])
+            print(route[0])
+        
+        routeName = askUserWhichRouteToLoad(routeNames)
+        
+        for route in routes:
+            if route[0] == routeName:
+                return route[1]
+
+    else:
+        print("No routes saved!")
+        return []
+
+    
+
+def askUserWhichRouteToLoad(routeNames):
+    routeName = ""
+    while routeName not in routeNames:
+        routeName = str(input("Enter route name to load"))
+
+    return routeName
