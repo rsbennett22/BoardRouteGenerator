@@ -67,8 +67,9 @@ def askUserForHoldTypeWanted():
 
 def askUserToLoadOrGenerateRoute():
     loadOrGenerate = ""
-    while loadOrGenerate not in ["l", "g"]:
-        loadOrGenerate = str(input("Load existing route or generate a new one: [l, g]"))
+    commands = ["l", "g", "c"]
+    while loadOrGenerate not in commands:
+        loadOrGenerate = str(input("Load existing route or generate a new one: " + str(commands)))
     
     return loadOrGenerate
 

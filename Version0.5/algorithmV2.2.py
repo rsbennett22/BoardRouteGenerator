@@ -108,7 +108,8 @@ def runProgram():
     global startHolds
     global finishHolds
 
-    while True:
+    loadOrGenerate = ""
+    while loadOrGenerate != "c":
         loadOrGenerate = GlobalHelper.askUserToLoadOrGenerateRoute()
         if loadOrGenerate == "g":
             numOfHolds = GlobalHelper.askUserForNumOfHolds()
@@ -126,13 +127,15 @@ def runProgram():
             if saveRoute == "y":
                 GlobalHelper.saveRoute(GENERATED_ROUTE)
 
-        else:
+        elif loadOrGenerate == "l":
             # Load route from file
             plt.close()
             GlobalHelper.applyImageToPlt()
             GENERATED_ROUTE = GlobalHelper.loadRoute()
             GlobalHelper.plotHolds(GENERATED_ROUTE, "b")
             plt.show()
+        else:
+            pass
 
 
 runProgram()
