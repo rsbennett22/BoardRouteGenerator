@@ -13,6 +13,8 @@ TODO:
 import logging
 import RouteHelper
 import GlobalHelper
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
